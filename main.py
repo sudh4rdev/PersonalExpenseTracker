@@ -48,6 +48,10 @@ def main(page : ft.Page):
         label = 'Expense Description',
         hint_text = 'e.g., Tesco Shopping GWR',
         icon = ft.Icons.SHOPPING_BAG,
+        label_style=ft.TextStyle(color = ft.Colors.GREEN_ACCENT_700),
+        hint_style=ft.TextStyle(color= ft.Colors.GREEN_ACCENT_700),
+        border_color=ft.Colors.GREEN_ACCENT_700,
+        focused_border_color=ft.Colors.GREEN_ACCENT_700,
         width = 300
     )
 
@@ -56,6 +60,10 @@ def main(page : ft.Page):
         hint_text = '£ 0.00',
         icon = ft.Icons.ATTACH_MONEY,
         keyboard_type= ft.KeyboardType.NUMBER,
+        label_style=ft.TextStyle(color = ft.Colors.GREEN_ACCENT_700),
+        hint_style=ft.TextStyle(color= ft.Colors.GREEN_ACCENT_700),
+        border_color=ft.Colors.GREEN_ACCENT_700,
+        focused_border_color=ft.Colors.GREEN_ACCENT_700,
         width = 300
     )
 
@@ -63,6 +71,10 @@ def main(page : ft.Page):
         label= 'Payment Method',
         hint_text= 'e.g., Apple Pay',
         icon = ft.Icons.CREDIT_CARD,
+        label_style=ft.TextStyle(color = ft.Colors.GREEN_ACCENT_700),
+        hint_style=ft.TextStyle(color= ft.Colors.GREEN_ACCENT_700),
+        border_color=ft.Colors.GREEN_ACCENT_700,
+        focused_border_color=ft.Colors.GREEN_ACCENT_700,
         width = 300
     )
 
@@ -78,6 +90,11 @@ def main(page : ft.Page):
         value=datetime.now().strftime("%d-%m-%Y"),
         width=300,
         icon=ft.Icons.CALENDAR_TODAY,
+        color=ft.Colors.GREEN_ACCENT_700,
+        label_style=ft.TextStyle(color = ft.Colors.GREEN_ACCENT_700),
+        hint_style=ft.TextStyle(color= ft.Colors.GREEN_ACCENT_700),
+        border_color=ft.Colors.GREEN_ACCENT_700,
+        focused_border_color=ft.Colors.GREEN_ACCENT_700,
         suffix=ft.IconButton(
             icon=ft.Icons.KEYBOARD_ARROW_DOWN,
             icon_color=ft.Colors.GREEN_ACCENT_700,
@@ -102,7 +119,7 @@ def main(page : ft.Page):
     balance_value = calculate_current_balance()
     balance_label = ft.Text(
         value=f"Current Balance: £{balance_value:,.2f}",
-        size=22,
+        size=20,
         weight=ft.FontWeight.NORMAL,
         color=ft.Colors.GREEN_ACCENT_700 if balance_value >= 0 else ft.Colors.RED_700
     )
@@ -110,7 +127,6 @@ def main(page : ft.Page):
     status_msg = ft.Text(value="", size=12, italic=True)
 
     def commit_expense_record(e):
-        # Extract raw strings from inputs
         date_text = date_input.value.strip()
         desc_text = desc_input.value.strip()
         amount_text = amount_input.value.strip()
@@ -160,7 +176,8 @@ def main(page : ft.Page):
         icon=ft.Icons.SAVE,
         on_click=commit_expense_record,
         width=300,
-        height=45
+        height=45,
+        color = ft.Colors.GREEN_ACCENT_700
     )
 
 
@@ -169,14 +186,14 @@ def main(page : ft.Page):
         ft.Container(
             content=ft.Column(
                 controls=[
-                    ft.Text("Expense Tracker", size=28, weight=ft.FontWeight.W_800),
-                    ft.Divider(height=20, thickness=1),
-                    balance_label,
+                    ft.Text("Expense Tracker", size=28, weight=ft.FontWeight.W_800, color=ft.Colors.GREEN_ACCENT_700),
+                    ft.Divider(height=20, thickness=1, color=ft.Colors.GREEN_ACCENT_700),
                     ft.Container(height=15),
                     date_input,
                     desc_input,
                     amount_input,
                     payment_input,
+                    balance_label,
                     ft.Container(height=10),
                     submit_button,
                     ft.Container(height=5),
@@ -188,7 +205,8 @@ def main(page : ft.Page):
             padding=10
         )
     )
-
-# App target execution setup
+    
 if __name__ == "__main__":
     ft.app(target=main)
+
+

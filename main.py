@@ -3,28 +3,30 @@ import csv
 import flet as ft
 from datetime import datetime
 
-CSV_FILE_PATH = 'expenses.csv'
-CURRENT_BALANCE = 2500.00
-CURRENT_EXPESESES = 0.0
+APP_CONFIG = {
+'CSV_FILE_PATH' : 'expenses.csv',
+'CURRENT_BALANCE' : 2500.00,
+'CURRENT_EXPESESES' : 0.0
+}
 
 def initialise_csv_storage():
     '''
     Create the CSV file with the headers if the file doesn't exists
     '''
-    if not os.path.exists(CSV_FILE_PATH):
-        with open(CSV_FILE_PATH, mode='w',newline="") as file:
+    if not os.path.exists(APP_CONFIG['CSV_FILE_PATH']):
+        with open(APP_CONFIG['CSV_FILE_PATH'], mode='w',newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(["Date", "Description","Amount", "Payment Method"])
+            writer.writerow(['Date', 'Description','Amount', 'Payment Method'])
 
 def calculate_current_balance() -> float:
     '''
     Calculate the current balance
     '''
-    if not os.path.exists(CSV_FILE_PATH):
-        return CURRENT_BALANCE
+    if not os.path.exists(APP_CONFIG['CSV_FILE_PATH']):
+        return APP_CONFIG['CURRENT_BALANCE']
     
     total_expenses = 0.0
-    with open(CSV_FILE_PATH, mode='r', newline="") as file:
+    with open(APP_CONFIG['CSV_FILE_PATH'], mode='r', newline='') as file:
         reader = csv.DictReader(file)
         for row in reader:
             try:
@@ -33,13 +35,14 @@ def calculate_current_balance() -> float:
                 continue
 
     CURRENT_EXPESESES = total_expenses            
-    return CURRENT_BALANCE - total_expenses
+    return APP_CONFIG['CURRENT_BALANCE'] - total_expenses
 
 def main(page : ft.Page):
     page.title = 'Personal Expense Tracker'
     page.window.width = 450
-    page.window.height = 650
+    page.window.height = 700
     # page.theme_mode = ft.ThemeMode.LIGHT
+    page.window.resizable = False
     page.padding = 24
 
     initialise_csv_storage()
@@ -54,6 +57,7 @@ def main(page : ft.Page):
         focused_border_color=ft.Colors.GREEN_ACCENT_700,
         width = 300
     )
+    # HOME SCREEN - START
 
     amount_input = ft.TextField(
         label = 'Amount Spent',
@@ -86,8 +90,8 @@ def main(page : ft.Page):
     page.overlay.append(date_picker)
 
     date_input = ft.TextField(
-        label="Expense Date",
-        value=datetime.now().strftime("%d-%m-%Y"),
+        label='Expense Date',
+        value=datetime.now().strftime('%d-%m-%Y'),
         width=300,
         icon=ft.Icons.CALENDAR_TODAY,
         color=ft.Colors.GREEN_ACCENT_700,
@@ -111,20 +115,32 @@ def main(page : ft.Page):
             else:
                 local_date = raw_date.date()
                 
-            date_input.value = local_date.strftime("%d-%m-%Y")
+            date_input.value = local_date.strftime('%d-%m-%Y')
             page.update()
     
     date_picker.on_change = handle_date_picker_change
 
     balance_value = calculate_current_balance()
     balance_label = ft.Text(
-        value=f"Current Balance: £{balance_value:,.2f}",
+        value=f'Current Balance: £{balance_value:,.2f}',
         size=20,
         weight=ft.FontWeight.NORMAL,
         color=ft.Colors.GREEN_ACCENT_700 if balance_value >= 0 else ft.Colors.RED_700
     )
     
-    status_msg = ft.Text(value="", size=12, italic=True)
+    status_msg = ft.Text(value='', size=12, italic=True)
+
+    def handle_banner_close(e: ft.Event[ft.TextButton]):
+        page.pop_dialog()
+
+    action_button_style = ft.ButtonStyle(color=ft.Colors.GREEN_ACCENT_700)
+    banner = ft.Banner(
+    leading=ft.Icon(ft.Icons.INFO_OUTLINED, color=ft.Colors.GREEN_ACCENT_700),
+    content=status_msg,
+    actions=[ft.TextButton("Dismiss",on_click=handle_banner_close, style=action_button_style)],
+    bgcolor=ft.Colors.SURFACE_CONTAINER_LOW,
+    open= False
+    )
 
     def commit_expense_record(e):
         date_text = date_input.value.strip()
@@ -134,9 +150,10 @@ def main(page : ft.Page):
         
         
         if not date_text or not desc_text or not amount_text or not payment_text:
-            status_msg.value = "Error: All text fields must be populated."
+            status_msg.value = 'Error: All text fields must be populated.'
             status_msg.color = ft.Colors.RED_600
             page.update()
+            page.show_dialog(banner)
             return
             
         
@@ -145,34 +162,35 @@ def main(page : ft.Page):
             if parsed_amount <= 0:
                 raise ValueError()
         except ValueError:
-            status_msg.value = "Validation Fail: Amount must be a positive number."
+            status_msg.value = 'Validation Fail: Amount must be a positive number.'
             status_msg.color = ft.Colors.RED_600
             page.update()
             return
 
         
-        with open(CSV_FILE_PATH, mode="a", newline="", encoding="utf-8") as file:
+        with open(APP_CONFIG['CSV_FILE_PATH'], mode='a', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
-            writer.writerow([date_text, desc_text, f"{parsed_amount:.2f}", payment_text])
+            writer.writerow([date_text, desc_text, f'{parsed_amount:.2f}', payment_text])
             
         
         new_balance = calculate_current_balance()
-        balance_label.value = f"Current Balance: £{new_balance:,.2f}"
+        balance_label.value = f'Current Balance: £{new_balance:,.2f}'
         balance_label.color = ft.Colors.GREEN_700 if new_balance >= 0 else ft.Colors.RED_700
         
        
-        desc_input.value = ""
-        amount_input.value = ""
-        payment_input.value = ""
-        date_input.value = datetime.now().strftime("%d-%m-%Y")
+        desc_input.value = ''
+        amount_input.value = ''
+        payment_input.value = ''
+        date_input.value = datetime.now().strftime('%d-%m-%Y')
         
-        status_msg.value = "Success: Transaction record safely written to CSV!"
+        status_msg.value = 'Success: Transaction record safely written to CSV!'
         status_msg.color = ft.Colors.GREEN_600
+        page.show_dialog(banner)
         page.update()
 
     
-    submit_button = ft.ElevatedButton(
-        content="Save Expense",
+    submit_button = ft.Button(
+        content='Save Expense',
         icon=ft.Icons.SAVE,
         on_click=commit_expense_record,
         width=300,
@@ -180,13 +198,46 @@ def main(page : ft.Page):
         color = ft.Colors.GREEN_ACCENT_700
     )
 
+    # HOME SCREEN - END 
 
-   
-    page.add(
-        ft.Container(
-            content=ft.Column(
+    # SETTINGS SCREEN - START
+    path_label = ft.Text(
+        value = os.path.abspath(APP_CONFIG['CSV_FILE_PATH']),
+        size = 11,
+        color=ft.Colors.GREEN_ACCENT_400,
+        text_align=ft.TextAlign.CENTER,
+        max_lines=2,
+        overflow=ft.TextOverflow.ELLIPSIS
+    )
+
+    async def handle_get_directory_path(e:ft.Event[ft.Button]):
+        try:
+            files = await ft.FilePicker().pick_files(allow_multiple=False, allowed_extensions=['csv'])
+            path_label.value = files[0].path
+        except:
+            pass
+
+    file_picker_button = ft.Button(
+        content='Choose File',
+        icon = ft.Icons.FOLDER_OPEN,
+        on_click= handle_get_directory_path
+    )
+
+    def handle_theme_switch_change(e: ft.Event[ft.Switch]):
+        page.theme_mode = ft.ThemeMode.LIGHT if e.control.value else ft.ThemeMode.DARK
+
+    theme_switch = ft.Switch(
+        on_change= handle_theme_switch_change
+
+    )   
+
+    # SETTINGS SCREEN - END
+
+    # MENU LAYOUT - START
+
+    home_layout = ft.Column(
                 controls=[
-                    ft.Text("Expense Tracker", size=28, weight=ft.FontWeight.W_800, color=ft.Colors.GREEN_ACCENT_700),
+                    ft.Text('Expense Tracker', size=28, weight=ft.FontWeight.W_800, color=ft.Colors.GREEN_ACCENT_700),
                     ft.Divider(height=20, thickness=1, color=ft.Colors.GREEN_ACCENT_700),
                     ft.Container(height=15),
                     date_input,
@@ -197,16 +248,59 @@ def main(page : ft.Page):
                     ft.Container(height=10),
                     submit_button,
                     ft.Container(height=5),
-                    status_msg
+                    banner
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
-            ),
-            alignment=ft.alignment.Alignment.TOP_CENTER,
-            padding=10
-        )
+            )
+    
+    insight_layout = ft.Column(
+        controls=[
+            ft.Text('Insights Screen', size=28, weight=ft.FontWeight.W_800, color=ft.Colors.GREEN_ACCENT_700),
+            ft.Divider(height=20, thickness=1, color=ft.Colors.GREEN_ACCENT_700),
+            ft.Text('Placeholder for historical analytics charts & distributions.')
+        ],
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER
+    )
+
+    settings_layout = ft.Column(
+        controls=[
+            ft.Text('Settings Screen', size=28, weight=ft.FontWeight.W_800, color=ft.Colors.GREEN_ACCENT_700),
+            ft.Divider(height=20, thickness=1, color=ft.Colors.GREEN_ACCENT_700),
+            ft.Row(controls = [file_picker_button , path_label], alignment=ft.MainAxisAlignment.SPACE_BETWEEN, expand= True),
+            ft.Row(controls = [ft.Text('Enable Light Mode', color=ft.Colors.GREEN_ACCENT_700), theme_switch], 
+                   alignment=ft.MainAxisAlignment.SPACE_BETWEEN, expand= True)
+        ]
     )
     
-if __name__ == "__main__":
-    ft.app(target=main)
+    def change_active_tab(e):
+        if e.control.selected_index == 0:
+            active_view_wrapper.content = home_layout
+        elif e.control.selected_index == 1:
+            active_view_wrapper.content = insight_layout
+        elif e.control.selected_index == 2:
+            active_view_wrapper.content = settings_layout
+        page.update()
 
+        
+    page.navigation_bar = ft.NavigationBar(
+        selected_index= 0,
+        on_change= change_active_tab,
+        destinations=[
+            ft.NavigationBarDestination(icon=ft.Icons.HOME, label='Home'),
+            ft.NavigationBarDestination(icon=ft.Icons.ANALYTICS, label='Insight'),
+            ft.NavigationBarDestination(icon=ft.Icons.SETTINGS,label='Settings')
+        ]
+    )
 
+    # MENU LAYOUT - END
+
+    active_view_wrapper = ft.Container(
+            content=home_layout,
+            alignment=ft.alignment.Alignment.TOP_CENTER,
+            padding=10
+    )
+
+    page.add(active_view_wrapper)
+    
+if __name__ == '__main__':
+    ft.run(main = main)
